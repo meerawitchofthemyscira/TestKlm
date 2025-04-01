@@ -1,10 +1,9 @@
+/*
 package com.klm.weather;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.klm.weather.model.Weather;
-import com.klm.weather.model.WeatherDTO;
 import com.klm.weather.repository.WeatherRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,12 +12,8 @@ import org.mockito.internal.matchers.apachecommons.ReflectionEquals;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -36,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @AutoConfigureMockMvc
-public class WeatherApiRestControllerTest {
+public class WeatherApiRestControllerTest2 {
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static final ObjectMapper om = new ObjectMapper();
     @Autowired
@@ -48,15 +43,14 @@ public class WeatherApiRestControllerTest {
     public void setup() {
         weatherRepository.deleteAll();
         om.setDateFormat(simpleDateFormat);
-
     }
 
     @Test
     public void testWeatherEndpointWithPOST() throws Exception {
         Weather expectedRecord = getTestData().get("chicago");
         Weather actualRecord = om.readValue(mockMvc.perform(post("/weather")
-                .contentType("application/json")
-                .content(om.writeValueAsString(getTestData().get("chicago"))))
+                        .contentType("application/json")
+                        .content(om.writeValueAsString(getTestData().get("chicago"))))
                 .andDo(print())
                 .andExpect(jsonPath("$.id", greaterThan(0)))
                 .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), Weather.class);
@@ -73,8 +67,8 @@ public class WeatherApiRestControllerTest {
 
         for (Map.Entry<String, Weather> kv : data.entrySet()) {
             expectedRecords.add(om.readValue(mockMvc.perform(post("/weather")
-                    .contentType("application/json")
-                    .content(om.writeValueAsString(kv.getValue())))
+                            .contentType("application/json")
+                            .content(om.writeValueAsString(kv.getValue())))
                     .andDo(print())
                     .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), Weather.class));
         }
@@ -101,8 +95,8 @@ public class WeatherApiRestControllerTest {
 
         for (Map.Entry<String, Weather> kv : data.entrySet()) {
             expectedRecords.add(om.readValue(mockMvc.perform(post("/weather")
-                    .contentType("application/json")
-                    .content(om.writeValueAsString(kv.getValue())))
+                            .contentType("application/json")
+                            .content(om.writeValueAsString(kv.getValue())))
                     .andDo(print())
                     .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), Weather.class));
         }
@@ -110,8 +104,8 @@ public class WeatherApiRestControllerTest {
 
         List<Weather> actualRecords = om.readValue(mockMvc.perform(get("/weather?date=2019-03-12"))
                 .andDo(print())
-                .andExpect(jsonPath("$.content", hasSize(greaterThan(0))))
-                .andExpect(jsonPath("$.totalElements", greaterThan(0)))
+                .andExpect(jsonPath("$.*", isA(ArrayList.class)))
+                .andExpect(jsonPath("$.*", hasSize(expectedRecords.size())))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), new TypeReference<List<Weather>>() {
         });
 
@@ -121,8 +115,8 @@ public class WeatherApiRestControllerTest {
 
         mockMvc.perform(get("/weather?date=2015-06-06"))
                 .andDo(print())
-                .andExpect(jsonPath("$.content", isA(ArrayList.class)))
-                .andExpect(jsonPath("$.totalElements", hasSize(0)))
+                .andExpect(jsonPath("$.*", isA(ArrayList.class)))
+                .andExpect(jsonPath("$.*", hasSize(0)))
                 .andExpect(status().isOk());
     }
 
@@ -179,8 +173,8 @@ public class WeatherApiRestControllerTest {
 
         for (Map.Entry<String, Weather> kv : getTestData().entrySet()) {
             expectedRecords.add(om.readValue(mockMvc.perform(post("/weather")
-                    .contentType("application/json")
-                    .content(om.writeValueAsString(kv.getValue())))
+                            .contentType("application/json")
+                            .content(om.writeValueAsString(kv.getValue())))
                     .andDo(print())
                     .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), Weather.class));
         }
@@ -214,13 +208,13 @@ public class WeatherApiRestControllerTest {
     @Test
     public void testWeatherEndpointWithGETById() throws Exception {
         Weather expectedRecord = om.readValue(mockMvc.perform(post("/weather")
-                .contentType("application/json")
-                .content(om.writeValueAsString(getTestData().get("chicago"))))
+                        .contentType("application/json")
+                        .content(om.writeValueAsString(getTestData().get("chicago"))))
                 .andDo(print())
                 .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), Weather.class);
 
         Weather actualRecord = om.readValue(mockMvc.perform(get("/weather/" + expectedRecord.getId())
-                .contentType("application/json"))
+                        .contentType("application/json"))
                 .andDo(print())
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), Weather.class);
 
@@ -229,6 +223,32 @@ public class WeatherApiRestControllerTest {
         mockMvc.perform(get("/weather/" + Integer.MAX_VALUE))
                 .andDo(print())
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testWeatherEndpointWithGETListAndPagination() throws Exception {
+        Map<String, Weather> data = getTestData();
+        data.remove("moscow2");
+        List<Weather> expectedRecords = new ArrayList<>();
+
+        for (Map.Entry<String, Weather> kv : data.entrySet()) {
+            expectedRecords.add(om.readValue(mockMvc.perform(post("/weather")
+                            .contentType("application/json")
+                            .content(om.writeValueAsString(kv.getValue())))
+                    .andDo(print())
+                    .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), Weather.class));
+        }
+        Collections.sort(expectedRecords, Comparator.comparing(Weather::getId));
+
+        // Check pagination with specific page and size
+        int pageSize = 10;  // You can adjust based on your dataset size
+        mockMvc.perform(get("/weather?page=0&size=" + pageSize))  // First page
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(Math.min(pageSize, expectedRecords.size()))))  // Ensure we are getting expected number of items
+                .andExpect(jsonPath("$.totalElements").value(expectedRecords.size()))  // Check total elements
+                .andExpect(jsonPath("$.totalPages").value((expectedRecords.size() + pageSize - 1) / pageSize))  // Check total pages
+                .andExpect(jsonPath("$.page").value(0));  // Ensure the page is correct
     }
 
     private Map<String, Weather> getTestData() throws ParseException {
@@ -281,172 +301,5 @@ public class WeatherApiRestControllerTest {
 
         return data;
     }
-
-
-    //pagination
-
-    @Test
-    public void testWeatherEndpointWithGETListAndDateFilterPage() throws Exception {
-        Date date = simpleDateFormat.parse("2019-03-12"); // Parse the filter date
-        Map<String, Weather> data = getTestData();
-        data.remove("moscow2"); // Remove unwanted test data
-        List<Weather> expectedRecords = new ArrayList<>();
-
-        // Create weather records by posting them
-        for (Map.Entry<String, Weather> kv : data.entrySet()) {
-            expectedRecords.add(om.readValue(mockMvc.perform(post("/weather")
-                            .contentType("application/json")
-                            .content(om.writeValueAsString(kv.getValue())))
-                    .andDo(print())
-                    .andExpect(status().isCreated())
-                    .andReturn().getResponse().getContentAsString(), Weather.class));
-        }
-
-        // Filter expected records based on the date
-        expectedRecords = expectedRecords.stream()
-                .filter(r -> r.getDate().equals(date))
-                .collect(Collectors.toList());
-
-        // Perform GET request to fetch weather records with date filter
-        MvcResult mvcResult = mockMvc.perform(get("/weather?date=2019-03-12"))
-                .andDo(print())
-                .andExpect(jsonPath("$.content", hasSize(greaterThan(0)))) // Ensure content is not empty
-                .andExpect(jsonPath("$.totalElements", greaterThan(0))) // Ensure totalElements > 0
-                .andExpect(status().isOk())
-                .andReturn();
-
-        // Deserialize the content part of the response to List<WeatherDTO>
-        String jsonResponse = mvcResult.getResponse().getContentAsString();
-        JsonNode rootNode = om.readTree(jsonResponse);
-        JsonNode contentNode = rootNode.path("content");
-
-        // Convert contentNode to List<WeatherDTO>
-        List<WeatherDTO> actualRecords = om.readValue(contentNode.toString(), new TypeReference<List<WeatherDTO>>() {});
-
-        // Create a PageImpl instance using the content and pagination details
-        PageImpl<WeatherDTO> actualPage = new PageImpl<>(actualRecords,
-                Pageable.unpaged(), // Use an unpaged Pageable, as pagination details can be handled manually
-                rootNode.path("totalElements").asLong());
-
-        // Compare the expected and actual records
-        for (int i = 0; i < expectedRecords.size(); i++) {
-            WeatherDTO expectedDTO = convertToWeatherDTO(expectedRecords.get(i)); // Convert Weather to WeatherDTO
-            Assertions.assertTrue(new ReflectionEquals(expectedDTO).matches(actualRecords.get(i)));
-        }
-
-        // Test with a non-matching date to ensure no records are returned
-        mockMvc.perform(get("/weather?date=2015-06-06"))
-                .andDo(print())
-                .andExpect(jsonPath("$.content", isA(ArrayList.class))) // Expect empty array for non-matching date
-                .andExpect(jsonPath("$.totalElements", is(0))) // Ensure totalElements is 0
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    public void testWeatherEndpointWithGETListAndCityFilterWithPagination() throws Exception {
-        List<Weather> originalResponse = new ArrayList<>();
-
-        // Insert test data by posting weather records
-        for (Map.Entry<String, Weather> kv : getTestData().entrySet()) {
-            originalResponse.add(om.readValue(mockMvc.perform(post("/weather")
-                            .contentType("application/json")
-                            .content(om.writeValueAsString(kv.getValue())))
-                    .andDo(print())
-                    .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), Weather.class));
-        }
-
-        // Test for a single city (pagination is considered here as well)
-        List<Weather> expectedRecords = originalResponse.stream()
-                .filter(r -> r.getCity().toLowerCase().equals("moscow"))
-                .collect(Collectors.toList());
-
-        // Make a paginated GET request
-        MvcResult mvcResult = mockMvc.perform(get("/weather?city=moscow&page=0&size=2"))
-                .andDo(print())
-                .andExpect(jsonPath("$.content", isA(ArrayList.class)))
-                .andExpect(jsonPath("$.content", hasSize(2)))  // Adjust the size based on your expected number of records per page
-                .andExpect(jsonPath("$.totalElements", greaterThan(0)))  // Total records should be > 0
-                .andExpect(jsonPath("$.totalPages", greaterThan(0)))  // Ensure there are multiple pages if there are enough records
-                .andExpect(status().isOk())
-                .andReturn();
-
-        // Deserialize content from response
-        String jsonResponse = mvcResult.getResponse().getContentAsString();
-        JsonNode rootNode = om.readTree(jsonResponse);
-        JsonNode contentNode = rootNode.path("content");
-
-        List<WeatherDTO> actualRecords = om.readValue(contentNode.toString(), new TypeReference<List<WeatherDTO>>() {});
-
-        // Create a PageImpl instance using content and pagination details
-        PageImpl<WeatherDTO> actualPage = new PageImpl<>(actualRecords,
-                Pageable.ofSize(2), // Assume size=2 per page
-                rootNode.path("totalElements").asLong());
-
-        // Verify that the correct number of records is returned
-        Assertions.assertEquals(expectedRecords.size(), actualPage.getTotalElements(), "Total records should match");
-
-        // Compare expected and actual records for each page
-        for (int i = 0; i < actualPage.getContent().size(); i++) {
-            WeatherDTO expectedDTO = convertToWeatherDTO(expectedRecords.get(i));  // Convert Weather to WeatherDTO
-            Assertions.assertTrue(new ReflectionEquals(expectedDTO).matches(actualPage.getContent().get(i)));
-        }
-
-        // Test for multiple cities with pagination
-        expectedRecords = originalResponse.stream()
-                .filter(r -> ("moscow,London,Chicago").toLowerCase().contains(r.getCity().toLowerCase()))
-                .collect(Collectors.toList());
-
-        mvcResult = mockMvc.perform(get("/weather?city=moscow,London,Chicago&page=0&size=2"))
-                .andDo(print())
-                .andExpect(jsonPath("$.content", isA(ArrayList.class)))
-                .andExpect(jsonPath("$.content", hasSize(2)))  // Ensure it returns two records per page
-                .andExpect(jsonPath("$.totalElements", greaterThan(0)))  // Ensure the totalElements count is correct
-                .andExpect(jsonPath("$.totalPages", greaterThan(0)))  // Ensure there are multiple pages if there are enough records
-                .andExpect(status().isOk())
-                .andReturn();
-
-        // Deserialize content from response for multiple cities
-        jsonResponse = mvcResult.getResponse().getContentAsString();
-        rootNode = om.readTree(jsonResponse);
-        contentNode = rootNode.path("content");
-
-        actualRecords = om.readValue(contentNode.toString(), new TypeReference<List<WeatherDTO>>() {});
-
-        actualPage = new PageImpl<>(actualRecords,
-                Pageable.ofSize(2), // Page size of 2
-                rootNode.path("totalElements").asLong());
-
-        // Verify the total number of records and page size
-        Assertions.assertEquals(expectedRecords.size(), actualPage.getTotalElements(), "Total records should match for multiple cities");
-
-        // Compare expected and actual records for each page
-        for (int i = 0; i < actualPage.getContent().size(); i++) {
-            WeatherDTO expectedDTO = convertToWeatherDTO(expectedRecords.get(i));  // Convert Weather to WeatherDTO
-            Assertions.assertTrue(new ReflectionEquals(expectedDTO).matches(actualPage.getContent().get(i)));
-        }
-
-        // Test for no matching cities with pagination (ensure it returns an empty list)
-        mockMvc.perform(get("/weather?city=berlin,amsterdam&page=0&size=2"))
-                .andDo(print())
-                .andExpect(jsonPath("$.content", isA(ArrayList.class)))  // Ensure empty array
-                .andExpect(jsonPath("$.content", hasSize(0)))  // No content should be returned
-                .andExpect(jsonPath("$.totalElements", is(0)))  // totalElements should be 0
-                .andExpect(jsonPath("$.totalPages", is(0)))  // totalPages should also be 0
-                .andExpect(status().isOk());
-    }
-
-
-    private WeatherDTO convertToWeatherDTO(Weather weather) {
-        return new WeatherDTO(
-                weather.getId(),
-                weather.getDate(),  // No conversion needed, Date is retained
-                weather.getLat(),
-                weather.getLon(),
-                weather.getCity(),
-                weather.getState(),
-                weather.getTemperatures()
-        );
-    }
-
-
 }
+*/

@@ -1,28 +1,19 @@
 package com.klm.weather.model;
 
-import jakarta.persistence.*;
-
 import java.util.Date;
 import java.util.List;
 
-@Entity
-public class Weather {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)  // Auto-generate the ID
+public class WeatherDTO {
     private Integer id;
-
-    @Temporal(TemporalType.DATE)
     private Date date;
-
     private Float lat;
     private Float lon;
     private String city;
     private String state;
-
     private List<Double> temperatures;
 
-    public Weather(Integer id, Date date, Float lat, Float lon, String city, String state, List<Double> temperatures) {
+    // Constructor with all fields
+    public WeatherDTO(Integer id, Date date, Float lat, Float lon, String city, String state, List<Double> temperatures) {
         this.id = id;
         this.date = date;
         this.lat = lat;
@@ -32,7 +23,8 @@ public class Weather {
         this.temperatures = temperatures;
     }
 
-    public Weather(Date date, Float lat, Float lon, String city, String state, List<Double> temperatures) {
+    // Constructor without ID (useful for DTO transformations)
+    public WeatherDTO(Date date, Float lat, Float lon, String city, String state, List<Double> temperatures) {
         this.date = date;
         this.lat = lat;
         this.lon = lon;
@@ -41,9 +33,10 @@ public class Weather {
         this.temperatures = temperatures;
     }
 
-    public Weather() {
-    }
+    // Default Constructor
+    public WeatherDTO() {}
 
+    // Getters and Setters
     public Integer getId() {
         return id;
     }

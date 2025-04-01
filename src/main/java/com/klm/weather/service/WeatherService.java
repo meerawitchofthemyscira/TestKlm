@@ -1,16 +1,25 @@
 package com.klm.weather.service;
 
 import com.klm.weather.model.Weather;
+import com.klm.weather.model.WeatherDTO;
 import com.klm.weather.repository.WeatherRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Date;
+import java.util.Optional;
 
 @Service
 public class WeatherService {
+
+    private static final Logger logger = LoggerFactory.getLogger(WeatherService.class);
 
     private final WeatherRepository weatherRepository;
 
@@ -18,52 +27,51 @@ public class WeatherService {
         this.weatherRepository = weatherRepository;
     }
 
-    public Weather createWeatherRecord(Weather weather) {
-        return weatherRepository.save(weather);
+    public WeatherDTO createWeatherRecord(Weather weather) {
+        Weather savedWeather = weatherRepository.save(weather);
+        return convertToDTO(savedWeather);
     }
 
-    public List<Weather> getAllWeatherRecords(Optional<String> date, Optional<String> city, Optional<String> sort) {
+    public Page<WeatherDTO> getAllWeatherRecords(String date, String city, String sort, int page, int size) {
+        logger.info("Fetching weather records with filters - Date: {}, City: {}, Sort: {}", date, city, sort);
 
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate filterDate = (date != null && !date.isEmpty()) ? LocalDate.parse(date, dateFormatter) : null;
+        Pageable pageable = PageRequest.of(page, size);
 
-        return weatherRepository.findAll().stream()
-                .filter(record -> date.map(d -> {
-                    try {
-                        // Parse the input string date to a LocalDate object
-                        LocalDate filterDate = LocalDate.parse(d, dateFormatter);
-                        // Convert the record's Date to LocalDate for comparison
-                        LocalDate recordDate = convertToLocalDate(record.getDate());
-                        return filterDate.equals(recordDate);
-                    } catch (Exception e) {
-                        // Handle parsing exception and return false if invalid
-                        return false;
-                    }
-                }).orElse(true))
-                .filter(record -> city.map(c -> Arrays.stream(c.split(","))
-                        .anyMatch(cityName -> cityName.equalsIgnoreCase(record.getCity()))).orElse(true))
-                .sorted((o1, o2) -> {
-                    if (sort.isPresent()) {
-                        if ("date".equals(sort.get())) {
-                            int dateComparison = o1.getDate().compareTo(o2.getDate());
-                            return dateComparison != 0 ? dateComparison : Integer.compare(o1.getId(), o2.getId());
-                        } else if ("-date".equals(sort.get())) {
-                            int dateComparison = o2.getDate().compareTo(o1.getDate());
-                            return dateComparison != 0 ? dateComparison : Integer.compare(o1.getId(), o2.getId());
-                        }
-                    }
-                    return Integer.compare(o1.getId(), o2.getId());
-                })
-                .collect(Collectors.toList());
+        Page<Weather> weatherPage;
+
+        if (filterDate != null && city != null && !city.isEmpty()) {
+            weatherPage = weatherRepository.findByDateAndCity(filterDate, city, pageable);
+        } else if (filterDate != null) {
+            weatherPage = weatherRepository.findByDate(filterDate, pageable);
+        } else if (city != null && !city.isEmpty()) {
+            weatherPage = weatherRepository.findByCity(city, pageable);
+        } else {
+            weatherPage = weatherRepository.findAll(pageable);
+        }
+
+        return weatherPage.map(this::convertToDTO);
     }
 
-    public Optional<Weather> getWeatherById(int id) {
-        return weatherRepository.findById(id);
+    // Helper method to convert Date to LocalDate
+    private LocalDate convertToLocalDate(Date date) {
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
-    private LocalDate convertToLocalDate(java.util.Date date) {
-        // Convert Date to LocalDate
-        return date.toInstant()
-                .atZone(java.time.ZoneId.systemDefault())
-                .toLocalDate();
+    public Optional<WeatherDTO> getWeatherById(Integer id) {
+        return weatherRepository.findById(id).map(this::convertToDTO);
+    }
+
+    private WeatherDTO convertToDTO(Weather weather) {
+        return new WeatherDTO(
+                weather.getId(),
+                weather.getDate(),  // No conversion needed, Date is retained
+                weather.getLat(),
+                weather.getLon(),
+                weather.getCity(),
+                weather.getState(),
+                weather.getTemperatures()
+        );
     }
 }
