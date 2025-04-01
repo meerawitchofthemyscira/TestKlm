@@ -1,6 +1,7 @@
 package com.klm.weather.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.Date;
 import java.util.List;
@@ -13,10 +14,12 @@ public class Weather {
     private Integer id;
 
     @Temporal(TemporalType.DATE)
+    @NotNull(message = "Date cannot be null")
     private Date date;
 
     private Float lat;
     private Float lon;
+    @NotNull(message = "City cannot be null")
     private String city;
     private String state;
 

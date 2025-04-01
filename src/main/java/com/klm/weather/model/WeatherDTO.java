@@ -1,15 +1,30 @@
 package com.klm.weather.model;
 
+
+
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 import java.util.Date;
 import java.util.List;
 
+
 public class WeatherDTO {
     private Integer id;
+
+    @NotNull(message = "Date cannot be null")
     private Date date;
     private Float lat;
     private Float lon;
+
+    @NotNull(message = "City cannot be null")
+    @Size(min = 1, message = "City must not be empty")
     private String city;
+
+    @NotNull(message = "State cannot be null")
     private String state;
+
+    @NotNull(message = "Temperatures cannot be null")
     private List<Double> temperatures;
 
     // Constructor with all fields
