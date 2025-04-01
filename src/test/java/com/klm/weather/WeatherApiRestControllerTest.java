@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -52,6 +53,7 @@ public class WeatherApiRestControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     public void testWeatherEndpointWithPOST() throws Exception {
         Weather expectedRecord = getTestData().get("chicago");
         Weather actualRecord = om.readValue(mockMvc.perform(post("/weather")
@@ -66,6 +68,7 @@ public class WeatherApiRestControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     public void testWeatherEndpointWithGETList() throws Exception {
         Map<String, Weather> data = getTestData();
         data.remove("moscow2");
@@ -93,6 +96,7 @@ public class WeatherApiRestControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     public void testWeatherEndpointWithGETListAndDateFilter() throws Exception {
         Date date = simpleDateFormat.parse("2019-03-12");
         Map<String, Weather> data = getTestData();
@@ -127,6 +131,7 @@ public class WeatherApiRestControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     public void testWeatherEndpointWithGETListAndCityFilter() throws Exception {
         List<Weather> originalResponse = new ArrayList<>();
 
@@ -174,6 +179,7 @@ public class WeatherApiRestControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     public void testWeatherEndpointWithGETListAndDateOrder() throws Exception {
         List<Weather> expectedRecords = new ArrayList<>();
 
@@ -212,6 +218,7 @@ public class WeatherApiRestControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     public void testWeatherEndpointWithGETById() throws Exception {
         Weather expectedRecord = om.readValue(mockMvc.perform(post("/weather")
                 .contentType("application/json")
@@ -282,10 +289,10 @@ public class WeatherApiRestControllerTest {
         return data;
     }
 
-
     //pagination
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     public void testWeatherEndpointWithGETListAndDateFilterPage() throws Exception {
         Date date = simpleDateFormat.parse("2019-03-12"); // Parse the filter date
         Map<String, Weather> data = getTestData();
@@ -343,6 +350,7 @@ public class WeatherApiRestControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     public void testWeatherEndpointWithGETListAndCityFilterWithPagination() throws Exception {
         List<Weather> originalResponse = new ArrayList<>();
 

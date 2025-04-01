@@ -38,7 +38,7 @@ public class WeatherApiRestController {
             @ApiResponse(responseCode = "201", description = "Weather record created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request data")
     })
-    public ResponseEntity<WeatherDTO> createWeatherRecord(@Valid @RequestBody Weather weather) {
+    public ResponseEntity<WeatherDTO> createWeatherRecord(@Valid @RequestBody WeatherDTO weather) {
         // Converting to WeatherDTO after creating the record in the database
         WeatherDTO createdWeather = weatherService.createWeatherRecord(weather);
         return ResponseEntity.status(201).body(createdWeather);

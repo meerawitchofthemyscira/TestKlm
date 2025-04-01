@@ -19,7 +19,7 @@ public class Weather {
 
     private Float lat;
     private Float lon;
-    @NotNull(message = "City cannot be null")
+    @NotNull(message = "Date cannot be null")
     private String city;
     private String state;
 

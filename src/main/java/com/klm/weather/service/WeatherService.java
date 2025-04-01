@@ -27,8 +27,9 @@ public class WeatherService {
         this.weatherRepository = weatherRepository;
     }
 
-    public WeatherDTO createWeatherRecord(Weather weather) {
-        Weather savedWeather = weatherRepository.save(weather);
+    public WeatherDTO createWeatherRecord(WeatherDTO weather) {
+
+        Weather savedWeather = weatherRepository.save(convertToEntity(weather));
         return convertToDTO(savedWeather);
     }
 
@@ -74,4 +75,15 @@ public class WeatherService {
                 weather.getTemperatures()
         );
     }
+    private Weather convertToEntity(WeatherDTO weatherDTO) {
+        Weather weather = new Weather();
+        weather.setCity(weatherDTO.getCity());
+        weather.setState(weatherDTO.getState());
+        weather.setLat(weatherDTO.getLat());
+        weather.setLon(weatherDTO.getLon());
+        weather.setTemperatures(weatherDTO.getTemperatures());
+        weather.setDate(weatherDTO.getDate());
+        return weather;
+    }
+
 }
