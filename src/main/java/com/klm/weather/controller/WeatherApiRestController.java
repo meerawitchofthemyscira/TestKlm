@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -88,7 +89,6 @@ public class WeatherApiRestController {
 
         // Fetch paginated weather records based on the given filters
         Page<WeatherDTO> records = weatherService.getAllWeatherRecords(date, cities, sortBy, sortDirection, page, size);
-
         return ResponseEntity.ok(records);
 
     }

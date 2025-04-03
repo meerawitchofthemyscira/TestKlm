@@ -9,8 +9,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -40,17 +44,32 @@ public class WeatherService {
                 date != null ? date : "None",
                 cities.isEmpty() ? "All" : String.join(", ", cities),
                 sortBy);
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate filterDate = (date != null && !date.isEmpty()) ? LocalDate.parse(date, dateFormatter) : null;
-        Pageable pageable = PageRequest.of(page, size);
+        Date dateConverted = null;
+        Sort sort;
         if ("date".equals(sortBy)) {
-            pageable = PageRequest.of(page, size, Sort.by(
-                    Sort.Direction.fromString(sortDirection), "date"
-            ).and(Sort.by(Sort.Direction.ASC, "id")));  // Ensure secondary sorting by ID
-        } else {
-            pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"));
+            sort = Sort.by(Sort.Direction.fromString(sortDirection), "date")
+                    .and(Sort.by(Sort.Direction.ASC, "id"));  // Secondary sorting by ID
+        }else if ("-date".equals(sortBy)) {
+            // Sort by `date` descending and by `id` ascending
+            sort = Sort.by(Sort.Direction.DESC, "date")
+                    .and(Sort.by(Sort.Direction.ASC, "id"));  // Secondary sorting by ID in ascending order
+        }else {
+            sort = Sort.by(Sort.Direction.ASC, "id");  // Default sort by ID if `sortBy` is missing
         }
-        Page<Weather> weatherPage = weatherRepository.findWeatherRecords(date, cities, pageable);
+        // Create pageable object
+        Pageable pageable = PageRequest.of(page, size, sort);
+        if (date != null) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                dateConverted=sdf.parse(date);
+            } catch (ParseException e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date format. Use YYYY-MM-DD.");
+            }
+        }
+        if (cities != null && cities.isEmpty()) {
+            cities = null;
+        }
+        Page<Weather> weatherPage = weatherRepository.findWeatherRecords(dateConverted, cities, pageable);
         return weatherPage.map(this::convertToDTO);
 
     }

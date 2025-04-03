@@ -85,8 +85,8 @@ public class WeatherApiRestControllerTest {
 
         List<Weather> actualRecords = om.readValue(mockMvc.perform(get("/weather"))
                 .andDo(print())
-                .andExpect(jsonPath("$.*", isA(ArrayList.class)))
-                .andExpect(jsonPath("$.*", hasSize(expectedRecords.size())))
+                .andExpect(jsonPath("$.content", isA(ArrayList.class)))
+                .andExpect(jsonPath("$.totalElements", hasSize(expectedRecords.size())))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), new TypeReference<List<Weather>>() {
         });
 
@@ -114,8 +114,8 @@ public class WeatherApiRestControllerTest {
 
         List<Weather> actualRecords = om.readValue(mockMvc.perform(get("/weather?date=2019-03-12"))
                 .andDo(print())
-                .andExpect(jsonPath("$.content", hasSize(greaterThan(0))))
-                .andExpect(jsonPath("$.totalElements", greaterThan(0)))
+                .andExpect(jsonPath("$", hasSize(greaterThan(0))))
+                .andExpect(jsonPath("$", greaterThan(0)))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), new TypeReference<List<Weather>>() {
         });
 
@@ -125,8 +125,8 @@ public class WeatherApiRestControllerTest {
 
         mockMvc.perform(get("/weather?date=2015-06-06"))
                 .andDo(print())
-                .andExpect(jsonPath("$.content", isA(ArrayList.class)))
-                .andExpect(jsonPath("$.totalElements", hasSize(0)))
+                .andExpect(jsonPath("$", isA(ArrayList.class)))
+                .andExpect(jsonPath("$", hasSize(0)))
                 .andExpect(status().isOk());
     }
 
@@ -147,8 +147,8 @@ public class WeatherApiRestControllerTest {
         List<Weather> expectedRecords = originalResponse.stream().filter(r -> r.getCity().toLowerCase().equals("moscow")).collect(Collectors.toList());
         List<Weather> actualRecords = om.readValue(mockMvc.perform(get("/weather?city=moscow"))
                 .andDo(print())
-                .andExpect(jsonPath("$.*", isA(ArrayList.class)))
-                .andExpect(jsonPath("$.*", hasSize(expectedRecords.size())))
+                .andExpect(jsonPath("$.content", isA(ArrayList.class)))
+                .andExpect(jsonPath("$.totalElements", hasSize(expectedRecords.size())))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), new TypeReference<List<Weather>>() {
         });
 
@@ -161,8 +161,8 @@ public class WeatherApiRestControllerTest {
 
         actualRecords = om.readValue(mockMvc.perform(get("/weather?city=moscow,London,ChicaGo"))
                 .andDo(print())
-                .andExpect(jsonPath("$.*", isA(ArrayList.class)))
-                .andExpect(jsonPath("$.*", hasSize(expectedRecords.size())))
+                .andExpect(jsonPath("$.content", isA(ArrayList.class)))
+                .andExpect(jsonPath("$.totalElements", hasSize(expectedRecords.size())))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), new TypeReference<List<Weather>>() {
         });
 
@@ -173,8 +173,8 @@ public class WeatherApiRestControllerTest {
         //test none
         mockMvc.perform(get("/weather?city=berlin,amsterdam"))
                 .andDo(print())
-                .andExpect(jsonPath("$.*", isA(ArrayList.class)))
-                .andExpect(jsonPath("$.*", hasSize(0)))
+                .andExpect(jsonPath("$.content", isA(ArrayList.class)))
+                .andExpect(jsonPath("$.totalElements", hasSize(0)))
                 .andExpect(status().isOk());
     }
 
@@ -192,10 +192,10 @@ public class WeatherApiRestControllerTest {
         }
         Collections.sort(expectedRecords, Comparator.comparing(Weather::getDate).thenComparing(Weather::getId));
 
-        List<Weather> actualRecords = om.readValue(mockMvc.perform(get("/weather?sort=date"))
+            List<Weather> actualRecords = om.readValue(mockMvc.perform(get("/weather?sort=date"))
                 .andDo(print())
-                .andExpect(jsonPath("$", isA(ArrayList.class)))
-                .andExpect(jsonPath("$", hasSize(expectedRecords.size())))
+                .andExpect(jsonPath("$.content", isA(ArrayList.class)))
+                .andExpect(jsonPath("$.totalElements", hasSize(expectedRecords.size())))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), new TypeReference<List<Weather>>() {
         });
 
@@ -207,8 +207,8 @@ public class WeatherApiRestControllerTest {
 
         actualRecords = om.readValue(mockMvc.perform(get("/weather?sort=-date"))
                 .andDo(print())
-                .andExpect(jsonPath("$", isA(ArrayList.class)))
-                .andExpect(jsonPath("$", hasSize(expectedRecords.size())))
+                .andExpect(jsonPath("$.content", isA(ArrayList.class)))
+                .andExpect(jsonPath("$.totalElements", hasSize(expectedRecords.size())))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), new TypeReference<List<Weather>>() {
         });
 

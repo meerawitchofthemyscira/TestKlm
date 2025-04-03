@@ -1,7 +1,5 @@
 package com.klm.weather.model;
 
-
-
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.Date;
@@ -9,6 +7,8 @@ import java.util.List;
 
 public class WeatherDTO {
     private Integer id;
+    @NotNull(message = "Date cannot be null")
+    private Date date;
     @NotNull(message = "Latitude cannot be null")
     private Float lat;
     @NotNull(message = "Longitude cannot be null")
@@ -20,8 +20,6 @@ public class WeatherDTO {
     @NotNull(message = "Temperatures cannot be null")
     @Size(min = 1, message = "At least one temperature value is required")
     private List<Double> temperatures;
-
-
 
     // Constructor with all fields
     public WeatherDTO(Integer id, Date date, Float lat, Float lon, String city, String state, List<Double> temperatures) {
@@ -46,9 +44,6 @@ public class WeatherDTO {
 
     // Default Constructor
     public WeatherDTO() {}
-
-    @NotNull(message = "Date cannot be null")
-    private Date date;
 
     public Integer getId() {
         return id;

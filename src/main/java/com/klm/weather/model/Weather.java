@@ -14,12 +14,9 @@ public class Weather {
     private Integer id;
 
     @Temporal(TemporalType.DATE)
-    @NotNull(message = "Date cannot be null")
     private Date date;
-
     private Float lat;
     private Float lon;
-    @NotNull(message = "Date cannot be null")
     private String city;
     private String state;
 

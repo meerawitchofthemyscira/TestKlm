@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -21,9 +22,9 @@ public interface WeatherRepository extends JpaRepository<Weather, Integer> {
     Page<Weather> findByDateAndCity(@Param("date") LocalDate date, @Param("city") String city, Pageable pageable);
 
     @Query("SELECT w FROM Weather w " +
-            "WHERE (:date IS NULL OR w.date = :date) " +
+            "WHERE (:date IS NULL OR w.date IS NULL OR w.date = :date) " +
             "AND (:cities IS NULL OR LOWER(w.city) IN (:cities))")
-    Page<Weather> findWeatherRecords(@Param("date") String date,
+    Page<Weather> findWeatherRecords(@Param("date") Date date,
                                      @Param("cities") List<String> cities,
                                      Pageable pageable);
 }
