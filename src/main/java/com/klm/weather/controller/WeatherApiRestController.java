@@ -18,6 +18,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.Page;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/weather")
 @Validated
@@ -63,9 +68,29 @@ public class WeatherApiRestController {
             @Parameter(description = "Page size (number of results per page)", example = "10")
             @RequestParam(defaultValue = "10") int size   // Default to 10 results per page
     ) {
+        String sortBy = "id";  // Default sorting by ID if no sort param provided
+        String sortDirection = "asc";
+
+        if ("date".equals(sort)) {
+            sortBy = "date";
+        } else if ("-date".equals(sort)) {
+            sortBy = "date";
+            sortDirection = "desc";
+        }
+
+        // Convert city parameter to a list (case insensitive)
+        List<String> cities = (city != null)
+                ? Arrays.stream(city.split(","))
+                .map(String::trim)
+                .map(String::toLowerCase)  // Case insensitive handling
+                .collect(Collectors.toList())
+                : Collections.emptyList();
+
         // Fetch paginated weather records based on the given filters
-        Page<WeatherDTO> records = weatherService.getAllWeatherRecords(date, city, sort, page, size);
+        Page<WeatherDTO> records = weatherService.getAllWeatherRecords(date, cities, sortBy, sortDirection, page, size);
+
         return ResponseEntity.ok(records);
+
     }
 
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")

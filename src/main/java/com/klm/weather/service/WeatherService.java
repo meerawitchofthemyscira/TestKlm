@@ -8,12 +8,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -33,26 +35,24 @@ public class WeatherService {
         return convertToDTO(savedWeather);
     }
 
-    public Page<WeatherDTO> getAllWeatherRecords(String date, String city, String sort, int page, int size) {
-        logger.info("Fetching weather records with filters - Date: {}, City: {}, Sort: {}", date, city, sort);
-
+    public Page<WeatherDTO> getAllWeatherRecords(String date, List<String> cities, String sortBy, String sortDirection, int page, int size) {
+        logger.info("Fetching weather records with filters - Date: {}, Cities: {}, Sort: {}",
+                date != null ? date : "None",
+                cities.isEmpty() ? "All" : String.join(", ", cities),
+                sortBy);
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate filterDate = (date != null && !date.isEmpty()) ? LocalDate.parse(date, dateFormatter) : null;
         Pageable pageable = PageRequest.of(page, size);
-
-        Page<Weather> weatherPage;
-
-        if (filterDate != null && city != null && !city.isEmpty()) {
-            weatherPage = weatherRepository.findByDateAndCity(filterDate, city, pageable);
-        } else if (filterDate != null) {
-            weatherPage = weatherRepository.findByDate(filterDate, pageable);
-        } else if (city != null && !city.isEmpty()) {
-            weatherPage = weatherRepository.findByCity(city, pageable);
+        if ("date".equals(sortBy)) {
+            pageable = PageRequest.of(page, size, Sort.by(
+                    Sort.Direction.fromString(sortDirection), "date"
+            ).and(Sort.by(Sort.Direction.ASC, "id")));  // Ensure secondary sorting by ID
         } else {
-            weatherPage = weatherRepository.findAll(pageable);
+            pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"));
         }
-
+        Page<Weather> weatherPage = weatherRepository.findWeatherRecords(date, cities, pageable);
         return weatherPage.map(this::convertToDTO);
+
     }
 
     // Helper method to convert Date to LocalDate
