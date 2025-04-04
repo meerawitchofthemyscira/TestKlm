@@ -13,12 +13,9 @@ import org.mockito.internal.matchers.apachecommons.ReflectionEquals;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -364,17 +361,5 @@ public class WeatherApiRestControllerTest {
         data.put("moscow2", moscow2);
 
         return data;
-    }
-
-    private WeatherDTO convertToWeatherDTO(Weather weather) {
-        return new WeatherDTO(
-                weather.getId(),
-                weather.getDate(),  // No conversion needed, Date is retained
-                weather.getLat(),
-                weather.getLon(),
-                weather.getCity(),
-                weather.getState(),
-                weather.getTemperatures()
-        );
     }
 }
