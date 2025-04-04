@@ -16,9 +16,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Disable CSRF (use cautiously in production)
+                .csrf(csrf -> csrf.disable()) // Disable CSRF
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/public/**").permitAll() // Permit public endpoints
                         .anyRequest().authenticated() // Secure all other endpoints
                 )
                 .httpBasic(Customizer.withDefaults()) ;// Enable HTTP Basic Authentication

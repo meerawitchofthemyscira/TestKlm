@@ -19,7 +19,6 @@ public class Weather {
     private Float lon;
     private String city;
     private String state;
-
     private List<Double> temperatures;
 
     public Weather(Integer id, Date date, Float lat, Float lon, String city, String state, List<Double> temperatures) {

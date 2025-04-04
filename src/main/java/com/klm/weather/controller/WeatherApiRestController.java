@@ -1,6 +1,5 @@
 package com.klm.weather.controller;
 
-import com.klm.weather.model.Weather;
 import com.klm.weather.model.WeatherDTO;
 import com.klm.weather.service.WeatherService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,10 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
@@ -101,6 +97,7 @@ public class WeatherApiRestController {
             @ApiResponse(responseCode = "404", description = "Weather record not found")
     })
     public ResponseEntity<WeatherDTO> getWeatherById(@PathVariable Integer id) {
+
         return weatherService.getWeatherById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

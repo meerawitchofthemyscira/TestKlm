@@ -15,9 +15,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -62,7 +59,8 @@ public class WeatherService {
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 dateConverted=sdf.parse(date);
-            } catch (ParseException e) {
+                }
+            catch (ParseException e) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date format. Use YYYY-MM-DD.");
             }
         }
@@ -71,12 +69,6 @@ public class WeatherService {
         }
         Page<Weather> weatherPage = weatherRepository.findWeatherRecords(dateConverted, cities, pageable);
         return weatherPage.map(this::convertToDTO);
-
-    }
-
-    // Helper method to convert Date to LocalDate
-    private LocalDate convertToLocalDate(Date date) {
-        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
     public Optional<WeatherDTO> getWeatherById(Integer id) {
@@ -104,5 +96,4 @@ public class WeatherService {
         weather.setDate(weatherDTO.getDate());
         return weather;
     }
-
 }
